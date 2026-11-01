@@ -107,18 +107,32 @@ Analiza parametrów uruchomieniowych:
 * RestartSec=5s: Odczekanie 5 sekund przed ponowną próbą podniesienia procesu.
 
 ## 5. Przeładowanie konfiguracji, autostart i uruchomienie
-Wczytanie nowego pliku jednostki do demona systemd:
+1. Wczytanie nowego pliku jednostki do demona systemd:
 
 ```bash
 sudo systemctl daemon-reload
 ```
-Włączenie autostartu przy rozruchu maszyny oraz natychmiastowe uruchomienie:
+2. Włączenie autostartu przy rozruchu maszyny oraz natychmiastowe uruchomienie:
 
 ```bash
 sudo systemctl enable --now llamafile.service
 ```
-Weryfikacja działania w czasie rzeczywistym (opcjonalny podgląd dziennika zdarzeń):
+3. Weryfikacja działania w czasie rzeczywistym (opcjonalny podgląd dziennika zdarzeń):
 
 ```bash
 journalctl -u llamafile.service -f
 ```
+
+## 6. Weryfikacja wymagań technicznych
+A. Weryfikacja nasłuchu na porcie i izolacji sieciowej (ss -tlnp)
+Sprawdzenie stanu otwartych portów TCP:
+
+```bash
+sudo ss -tlnp | grep 8080
+```
+Wynik:
+
+```
+LISTEN 0 5 192.168.56.101:8080 0.0.0.0:* users:((".ape-1.10",pid=8719,fd=4))
+```
+Interpretacja: Usługa nasłuchuje pod adresem 192.168.56.101:8080. Adresy 127.0.0.1 (loopback), 10.0.2.15 (NAT) oraz interfejs wewnętrzny nie publikują tego portu, co potwierdza spełnienie wymogu izolacji.
