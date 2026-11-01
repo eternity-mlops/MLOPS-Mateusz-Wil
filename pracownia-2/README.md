@@ -145,7 +145,7 @@ systemctl status llamafile.service
 ```
 Wynik:
 
-```bash
+```Plaintext
    llamafile.service - Llamafile Local LLM Service
      Loaded: loaded (/etc/systemd/system/llamafile.service; enabled; preset: enabled)
      Active: active (running) since Sun 2026-11-01 19:30:15 CET; 5min ago
