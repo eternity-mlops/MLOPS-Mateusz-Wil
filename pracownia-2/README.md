@@ -31,8 +31,8 @@ Jako model wybrano **TinyLlama-1.1B-Chat-v1.0** skwantyzowany do formatu `Q4_K_M
    
 2. Pobranie pliku binarnego z repozytorium HuggingFace:
 
-```bash
-sudo curl -L -o /opt/llamafile/model.llamafile [https://huggingface.co/Mozilla/TinyLlama-1.1B-Chat-v1.0-llamafile/resolve/main/TinyLlama-1.1B-Chat-v1.0.Q4_K_M.llamafile](https://huggingface.co/Mozilla/TinyLlama-1.1B-Chat-v1.0-llamafile/resolve/main/TinyLlama-1.1B-Chat-         v1.0.Q4_K_M.llamafile)
+   ```bash
+   sudo curl -L -o /opt/llamafile/model.llamafile [https://huggingface.co/Mozilla/TinyLlama-1.1B-Chat-v1.0-llamafile/resolve/main/TinyLlama-1.1B-Chat-v1.0.Q4_K_M.llamafile](https://huggingface.co/Mozilla/TinyLlama-1.1B-Chat-v1.0-llamafile/resolve/main/TinyLlama-1.1B-Chat-         v1.0.Q4_K_M.llamafile)
 
 Wyjaśnienie użytych parametrów:
 * -L (--location): Wymusza podążanie za przekierowaniami HTTP/HTTPS (niezbędne w przypadku HuggingFace CDN)
