@@ -24,15 +24,17 @@ Format `llamafile` łączy w jednym pliku binarnym silnik wykonawczy C++, wagi s
 
 Jako model wybrano **TinyLlama-1.1B-Chat-v1.0** skwantyzowany do formatu `Q4_K_M` (4-bitowa kwantyzacja wag, rozmiar ~670 MB), co zapewnia niski narzut pamięciowy i brak ryzyka przeciążenia procesora.
 
-1. Utworzenie dedykowanego katalogu w `/opt`:
-   ```bash
-   sudo mkdir -p /opt/llamafile
-   cd /opt/llamafile
+Utworzenie dedykowanego katalogu w `/opt`:
+```bash
+sudo mkdir -p /opt/llamafile
+cd /opt/llamafile
+```
    
-2. Pobranie pliku binarnego z repozytorium HuggingFace:
+Pobranie pliku binarnego z repozytorium HuggingFace:
 
-   ```bash
-   sudo curl -L -o /opt/llamafile/model.llamafile [https://huggingface.co/Mozilla/TinyLlama-1.1B-Chat-v1.0-llamafile/resolve/main/TinyLlama-1.1B-Chat-v1.0.Q4_K_M.llamafile](https://huggingface.co/Mozilla/TinyLlama-1.1B-Chat-v1.0-llamafile/resolve/main/TinyLlama-1.1B-Chat-         v1.0.Q4_K_M.llamafile)
+```bash
+sudo curl -L -o /opt/llamafile/model.llamafile https://huggingface.co/Mozilla/TinyLlama-1.1B-Chat-v1.0-llamafile/resolve/main/TinyLlama-1.1B-Chat-v1.0.Q4_K_M.llamafile
+```
 
 Wyjaśnienie użytych parametrów:
 * -L (--location): Wymusza podążanie za przekierowaniami HTTP/HTTPS (niezbędne w przypadku HuggingFace CDN)
