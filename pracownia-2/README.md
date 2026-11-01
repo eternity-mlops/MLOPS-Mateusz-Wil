@@ -24,13 +24,13 @@ Format `llamafile` łączy w jednym pliku binarnym silnik wykonawczy C++, wagi s
 
 Jako model wybrano **TinyLlama-1.1B-Chat-v1.0** skwantyzowany do formatu `Q4_K_M` (4-bitowa kwantyzacja wag, rozmiar ~670 MB), co zapewnia niski narzut pamięciowy i brak ryzyka przeciążenia procesora.
 
-Utworzenie dedykowanego katalogu w `/opt`:
+Tworzymy dedykowany katalog w `/opt`:
 ```bash
 sudo mkdir -p /opt/llamafile
 cd /opt/llamafile
 ```
    
-Pobranie pliku binarnego z repozytorium HuggingFace:
+Pobieramy plik binarny z repozytorium HuggingFace:
 
 ```bash
 sudo curl -L -o /opt/llamafile/model.llamafile https://huggingface.co/Mozilla/TinyLlama-1.1B-Chat-v1.0-llamafile/resolve/main/TinyLlama-1.1B-Chat-v1.0.Q4_K_M.llamafile
@@ -39,3 +39,27 @@ sudo curl -L -o /opt/llamafile/model.llamafile https://huggingface.co/Mozilla/Ti
 Wyjaśnienie użytych parametrów:
 * -L (--location): Wymusza podążanie za przekierowaniami HTTP/HTTPS (niezbędne w przypadku HuggingFace CDN)
 * -o (--output): Określa docelową ścieżkę zapisu pliku na dysku.
+
+## 3. Utworzenie użytkownika usługowego i uprawnienia
+Zgodnie z zasadami bezpieczeństwa usługa nie może działać na koncie root. Wyciek pamięci lub podatność serwera HTTP nie może skutkować przejęciem kontroli nad jądrem systemu.
+
+Utworzenie użytkownika systemowego:
+
+Bash
+sudo useradd --system --no-create-home --shell /usr/sbin/nologin llamafile
+Wyjaśnienie parametrów:
+
+--system: Tworzy konto systemowe z identyfikatorem UID < 1000, niewidoczne na ekranie powitalnym środowiska graficznego.
+
+--no-create-home: Blokuje tworzenie katalogu domowego w /home/.
+
+--shell /usr/sbin/nologin: Uniemożliwia bezpośrednie zalogowanie się na to konto przez SSH lub terminal.
+
+Nadanie praw wykonywalności i zmiana własności:
+
+Bash
+sudo chmod +x /opt/llamafile/model.llamafile
+sudo chown -R llamafile:llamafile /opt/llamafile
+chmod +x: Nadaje atrybut wykonywalności, umożliwiając uruchomienie pliku jako programu binarnego.
+
+chown -R: Rekursywnie przypisuje katalog i zawarty w nim model do nowego użytkownika i grupy llamafile.
