@@ -72,7 +72,7 @@ sudo nano /etc/systemd/system/llamafile.service
 ```
 Zawartość pliku jednostki:
 
-```bash
+```ini
 [Unit]
 Description=Llamafile Local LLM Service
 After=network-online.target
@@ -85,7 +85,7 @@ Group=llamafile
 WorkingDirectory=/opt/llamafile
 Environment="HOME=/opt/llamafile"
 Environment="TMPDIR=/opt/llamafile"
-ExecStart=/bin/sh /opt/llamafile/model.llamafile --server --nobrowser -t 1 -c 512 --host 192.168.56.101 --port 8080
+ExecStart=/bin/sh /opt/llamafile/model.llamafile --server --nobrowser --no-mmap -t 1 -c 2048 --host 192.168.56.101 --port 8080
 Restart=on-failure
 RestartSec=5s
 
@@ -93,16 +93,17 @@ RestartSec=5s
 WantedBy=multi-user.target
 ```
 
-Analiza parametrów uruchomieniowych:
-* After=network-online.target / Wants=...: Usługa wystartuje dopiero po pełnym podniesieniu stosu sieciowego.
-* User=llamafile / Group=llamafile: Izolacja uprawnień procesu w systemie.
-* WorkingDirectory, HOME, TMPDIR: Wskazanie lokalizacji roboczej, gdzie silnik może tworzyć tymczasowe bufory cache.
-* --server --nobrowser: Tryb serwerowy bez próby wywoływania przeglądarki na maszynie bezgłowej.
-* -t 1: Ograniczenie egzekucji do dokładnie 1 wątku CPU (zapobiega nasyceniu rdzeni vCPU i zawieszaniu maszyny wirtualnej).
-* -c 512: Ograniczenie rozmiaru bufora kontekstu do 512 tokenów w celu drastycznej redukcji alokacji pamięci RAM.
-* --host 192.168.56.101 --port 8080: Sztywne bindowanie gniazda sieciowego wyłącznie do interfejsu Host-Only.
-* Restart=on-failure: Automatyczne przywracanie procesu w przypadku awarii lub nieoczekiwanego zakończenia (np. sygnał SIGKILL).
-* RestartSec=5s: Odczekanie 5 sekund przed ponowną próbą podniesienia procesu.
+**Analiza parametrów uruchomieniowych:**
+* `After=network-online.target` / `Wants=...`: Usługa wystartuje dopiero po pełnym podniesieniu stosu sieciowego.
+* `User=llamafile` / `Group=llamafile`: Izolacja uprawnień procesu w systemie (zasada *least privilege*).
+* `WorkingDirectory`, `HOME`, `TMPDIR`: Wskazanie lokalizacji roboczej, gdzie silnik może tworzyć tymczasowe pliki wykonywalne `.ape` oraz bufory cache.
+* `--server --nobrowser`: Uruchomienie w trybie serwera HTTP bez próby wywoływania przeglądarki graficznej na maszynie typu *headless*.
+* `--no-mmap`: Wymuszenie bezpośredniego załadowania wag modelu do pamięci RAM zamiast mapowania pliku z wirtualnego dysku (eliminuje opóźnienia I/O w VirtualBox).
+* `-t 1`: Ograniczenie egzekucji do 1 wątku CPU (zapobiega zakleszczaniu wątków warstwy APE pod hiperwizorem i zawieszaniu maszyny wirtualnej).
+* `-c 2048`: Ustawienie rozmiaru bufora kontekstu na 2048 tokenów, co pozwala na swobodną obsługę dłuższych zapytań i historii czatu.
+* `--host 192.168.56.101 --port 8080`: Sztywne bindowanie gniazda sieciowego wyłącznie do interfejsu sieci *Host-Only*.
+* `Restart=on-failure`: Automatyczne przywracanie procesu w przypadku awarii lub nieoczekiwanego zakończenia (np. sygnał `SIGKILL`).
+* `RestartSec=5s`: Odczekanie 5 sekund przed ponowną próbą podniesienia procesu.
 
 ## 5. Przeładowanie konfiguracji, autostart i uruchomienie
 1. Wczytanie nowego pliku jednostki do demona systemd:
@@ -122,14 +123,14 @@ journalctl -u llamafile.service -f
 ```
 
 ## 6. Weryfikacja wymagań technicznych
-A. Weryfikacja nasłuchu na porcie i izolacji sieciowej (ss -tlnp)
+**A. Weryfikacja nasłuchu na porcie i izolacji sieciowej (ss -tlnp)**
 Sprawdzenie stanu otwartych portów TCP:
 
 <img width="864" height="48" alt="image" src="https://github.com/user-attachments/assets/37c4296a-904e-416b-9447-9c8e296d02a2" />
 
 Interpretacja: Usługa nasłuchuje pod adresem 192.168.56.101:8080. Adresy 127.0.0.1 (loopback), 10.0.2.15 (NAT) oraz interfejs wewnętrzny nie publikują tego portu, co potwierdza spełnienie wymogu izolacji.
 
-B. Test odporności na awarie (automatyczny restart po kill -9)
+**B. Test odporności na awarie (automatyczny restart po kill -9)**
 Sprawdzenie stanu procesu i zasobów:
 
 <img width="1152" height="234" alt="image" src="https://github.com/user-attachments/assets/832dac10-2794-4936-b12a-2abcbb7560f6" />
@@ -143,23 +144,34 @@ Wysłanie sygnału natychmiastowego zabicia procesu (SIGKILL) do aktywnego PID:
 
 Interpretacja: Systemd odnotował nieprawidłowe zatrzymanie procesu i samoczynnie uruchomił usługę pod nowym identyfikatorem PID: 5584.
 
-C. Test komunikacji REST API z maszyny gospodarza (curl)
+**C. Test komunikacji REST API z maszyny gospodarza (curl)**
 Wykonanie zapytania HTTP POST z poziomu terminala systemu gospodarza (Windows PowerShell) w celu weryfikacji generowania tokenów:
 
 ```bash
-curl [http://192.168.56.101:8080/completion](http://192.168.56.101:8080/completion) -H "Content-Type: application/json" -d "{\"prompt\": \"Linux is\", \"n_predict\": 5}"
+curl -X POST http://192.168.56.101:8080/v1/chat/completions -H "Content-Type: application/json" -d "{\"messages\":[{\"role\":\"user\",\"content\":\"Tell me a funny joke.\"}],\"max_tokens\":100}"
 ```
 Odpowiedź zwrócona przez model (JSON):
 
 ```JSON
 {
-  "content": " a stable and well-",
-  "generation_settings": {
-    "n_predict": 5,
-    "temperature": 0.7
-  },
-  "model": "TinyLlama-1.1B-Chat-v1.0.Q4_K_M",
-  "prompt": "Linux is",
-  "stop": false
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "A man walks into a bar and orders a drink. The bartender looks at him skeptically and asks, \"What's in that drink?\" The man replies, \"Just a little bit of luck.\" The bartender smiles and says, \"Well, that's a good start. But you'll need more.\" The man looks at the bartender, confused, and says, \"What do you mean, more? I'm just ordering a",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1793565899,
+  "id": "chatcmpl-1o3GfVKFJAi9LaB5gbXR9w6vueU97jV0",
+  "model": "unknown",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 100,
+    "prompt_tokens": 30,
+    "total_tokens": 130
+  }
 }
 ```
