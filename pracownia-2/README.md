@@ -43,23 +43,25 @@ Wyjaśnienie użytych parametrów:
 ## 3. Utworzenie użytkownika usługowego i uprawnienia
 Zgodnie z zasadami bezpieczeństwa usługa nie może działać na koncie root. Wyciek pamięci lub podatność serwera HTTP nie może skutkować przejęciem kontroli nad jądrem systemu.
 
-Utworzenie użytkownika systemowego:
+1. Utworzenie użytkownika systemowego:
 
-Bash
+```bash
 sudo useradd --system --no-create-home --shell /usr/sbin/nologin llamafile
 Wyjaśnienie parametrów:
+```
 
---system: Tworzy konto systemowe z identyfikatorem UID < 1000, niewidoczne na ekranie powitalnym środowiska graficznego.
+Wyjaśnienie parametrów:
+* --system: Tworzy konto systemowe z identyfikatorem UID < 1000, niewidoczne na ekranie powitalnym środowiska graficznego.
+* --no-create-home: Blokuje tworzenie katalogu domowego w /home/.
+* --shell /usr/sbin/nologin: Uniemożliwia bezpośrednie zalogowanie się na to konto przez SSH lub terminal.
 
---no-create-home: Blokuje tworzenie katalogu domowego w /home/.
+2. Nadanie praw wykonywalności i zmiana własności:
 
---shell /usr/sbin/nologin: Uniemożliwia bezpośrednie zalogowanie się na to konto przez SSH lub terminal.
-
-Nadanie praw wykonywalności i zmiana własności:
-
-Bash
+```bash
 sudo chmod +x /opt/llamafile/model.llamafile
 sudo chown -R llamafile:llamafile /opt/llamafile
 chmod +x: Nadaje atrybut wykonywalności, umożliwiając uruchomienie pliku jako programu binarnego.
+```
 
-chown -R: Rekursywnie przypisuje katalog i zawarty w nim model do nowego użytkownika i grupy llamafile.
+* chmod +x: Nadaje atrybut wykonywalności, umożliwiając uruchomienie pliku jako programu binarnego.
+* chown -R: Rekursywnie przypisuje katalog i zawarty w nim model do nowego użytkownika i grupy llamafile
