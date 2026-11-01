@@ -146,7 +146,7 @@ systemctl status llamafile.service
 Wynik:
 
 ```bash
-● llamafile.service - Llamafile Local LLM Service
+   llamafile.service - Llamafile Local LLM Service
      Loaded: loaded (/etc/systemd/system/llamafile.service; enabled; preset: enabled)
      Active: active (running) since Sun 2026-11-01 19:30:15 CET; 5min ago
    Main PID: 8719 (.ape-1.10)
@@ -157,3 +157,50 @@ Wynik:
              └─8719 /opt/llamafile/model.llamafile --server --nobrowser -t 1 -c 512 --host 192.168.56.101 --port 8080
 ```
 Interpretacja: Proces działa stabilnie w grupie kontrolnej systemd, zużywając niespełna 27 MB pamięci operacyjnej w spoczynku.
+
+C. Test odporności na awarie (automatyczny restart po kill -9)
+Test mechanizmu self-healing realizowanego przez systemd:
+
+Wysłanie sygnału natychmiastowego zabicia procesu (SIGKILL) do aktywnego PID (8719):
+
+```bash
+sudo kill -9 8719
+```
+Odczekanie zdefiniowanego interwału 5 sekund i ponowna weryfikacja statusu:
+
+```bash
+sleep 6
+systemctl status llamafile.service
+```
+Wynik:
+
+```bash
+   llamafile.service - Llamafile Local LLM Service
+     Loaded: loaded (/etc/systemd/system/llamafile.service; enabled; preset: enabled)
+     Active: active (running) since Sun 2026-11-01 19:36:20 CET; 2s ago
+   Main PID: 9140 (.ape-1.10)
+      Tasks: 4 (limit: 2289)
+     Memory: 26.5M
+```
+Interpretacja: Systemd odnotował nieprawidłowe zatrzymanie procesu i samoczynnie uruchomił usługę pod nowym identyfikatorem PID: 9140.
+
+D. Test komunikacji REST API z maszyny gospodarza (curl)
+Wykonanie zapytania HTTP POST z poziomu terminala systemu gospodarza (Windows PowerShell) w celu weryfikacji generowania tokenów:
+
+```bash
+curl [http://192.168.56.101:8080/completion](http://192.168.56.101:8080/completion) -H "Content-Type: application/json" -d "{\"prompt\": \"Linux is\", \"n_predict\": 5}"
+```
+Odpowiedź zwrócona przez model (JSON):
+
+```JSON
+{
+  "content": " a stable and well-",
+  "generation_settings": {
+    "n_predict": 5,
+    "temperature": 0.7
+  },
+  "model": "TinyLlama-1.1B-Chat-v1.0.Q4_K_M",
+  "prompt": "Linux is",
+  "stop": false
+}
+```
