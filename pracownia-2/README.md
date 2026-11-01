@@ -132,7 +132,28 @@ sudo ss -tlnp | grep 8080
 ```
 Wynik:
 
-```
+```bash
 LISTEN 0 5 192.168.56.101:8080 0.0.0.0:* users:((".ape-1.10",pid=8719,fd=4))
 ```
 Interpretacja: Usługa nasłuchuje pod adresem 192.168.56.101:8080. Adresy 127.0.0.1 (loopback), 10.0.2.15 (NAT) oraz interfejs wewnętrzny nie publikują tego portu, co potwierdza spełnienie wymogu izolacji.
+
+B. Status usługi oraz zużycie pamięci (systemctl status)
+Sprawdzenie stanu procesu i zasobów:
+
+```bash
+systemctl status llamafile.service
+```
+Wynik:
+
+```bash
+● llamafile.service - Llamafile Local LLM Service
+     Loaded: loaded (/etc/systemd/system/llamafile.service; enabled; preset: enabled)
+     Active: active (running) since Sun 2026-11-01 19:30:15 CET; 5min ago
+   Main PID: 8719 (.ape-1.10)
+      Tasks: 4 (limit: 2289)
+     Memory: 26.8M (peak: 27.1M)
+        CPU: 1.412s
+     CGroup: /system.slice/llamafile.service
+             └─8719 /opt/llamafile/model.llamafile --server --nobrowser -t 1 -c 512 --host 192.168.56.101 --port 8080
+```
+Interpretacja: Proces działa stabilnie w grupie kontrolnej systemd, zużywając niespełna 27 MB pamięci operacyjnej w spoczynku.
