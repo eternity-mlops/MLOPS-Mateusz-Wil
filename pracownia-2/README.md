@@ -62,7 +62,6 @@ sudo chmod +x /opt/llamafile/model.llamafile
 sudo chown -R llamafile:llamafile /opt/llamafile
 ```
 * chmod +x: Nadaje atrybut wykonywalności, umożliwiając uruchomienie pliku jako programu binarnego.
-* chmod +x: Nadaje atrybut wykonywalności, umożliwiając uruchomienie pliku jako programu binarnego.
 * chown -R: Rekursywnie przypisuje katalog i zawarty w nim model do nowego użytkownika i grupy llamafile
 
 ## 4. Konfiguracja jednostki systemd (/etc/systemd/system/llamafile.service)
@@ -126,65 +125,25 @@ journalctl -u llamafile.service -f
 A. Weryfikacja nasłuchu na porcie i izolacji sieciowej (ss -tlnp)
 Sprawdzenie stanu otwartych portów TCP:
 
-```bash
-sudo ss -tlnp | grep 8080
-```
-Wynik:
+<img width="864" height="48" alt="image" src="https://github.com/user-attachments/assets/37c4296a-904e-416b-9447-9c8e296d02a2" />
 
-```bash
-LISTEN 0      5      192.168.56.101:8080      0.0.0.0:*    users:((".ape-1.10",pid=1868,fd=4))
-```
 Interpretacja: Usługa nasłuchuje pod adresem 192.168.56.101:8080. Adresy 127.0.0.1 (loopback), 10.0.2.15 (NAT) oraz interfejs wewnętrzny nie publikują tego portu, co potwierdza spełnienie wymogu izolacji.
 
-B. Status usługi oraz zużycie pamięci (systemctl status)
+B. Test odporności na awarie (automatyczny restart po kill -9)
 Sprawdzenie stanu procesu i zasobów:
 
-```bash
-systemctl status llamafile.service
-```
-Wynik:
+<img width="1152" height="234" alt="image" src="https://github.com/user-attachments/assets/832dac10-2794-4936-b12a-2abcbb7560f6" />
 
-```Plaintext
-● llamafile.service - Llamafile LLM Service
-     Loaded: loaded (/etc/systemd/system/llamafile.service; enabled; preset: enabled)
-     Active: active (running) since Sun 2026-11-01 18:40:11 UTC; 47min ago
- Invocation: 9d40f7f2d82442f5a42713e2fbf20d40
-   Main PID: 1868 (.ape-1.10)
-      Tasks: 10 (limit: 6429)
-     Memory: 1.3G (peak: 1.3G)
-        CPU: 16.122s
-     CGroup: /system.slice/llamafile.service
-             └─1868 /opt/llamafile/.ape-1.10 /opt/llamafile/model.llamafile --server --nobrowser --no-mmap -t 1 -c 512 --host>
-```
-Interpretacja: Proces działa stabilnie w grupie kontrolnej systemd, zużywając niespełna 27 MB pamięci operacyjnej w spoczynku.
 
-C. Test odporności na awarie (automatyczny restart po kill -9)
 Test mechanizmu self-healing realizowanego przez systemd:
 
-Wysłanie sygnału natychmiastowego zabicia procesu (SIGKILL) do aktywnego PID (8719):
+Wysłanie sygnału natychmiastowego zabicia procesu (SIGKILL) do aktywnego PID:
 
-```bash
-sudo kill -9 8719
-```
-Odczekanie zdefiniowanego interwału 5 sekund i ponowna weryfikacja statusu:
+<img width="1144" height="268" alt="image" src="https://github.com/user-attachments/assets/091786ee-b0b1-4f0f-bd14-7cb1e6ad0fa0" />
 
-```bash
-sleep 6
-systemctl status llamafile.service
-```
-Wynik:
+Interpretacja: Systemd odnotował nieprawidłowe zatrzymanie procesu i samoczynnie uruchomił usługę pod nowym identyfikatorem PID: 5584.
 
-```bash
-   llamafile.service - Llamafile Local LLM Service
-     Loaded: loaded (/etc/systemd/system/llamafile.service; enabled; preset: enabled)
-     Active: active (running) since Sun 2026-11-01 19:36:20 CET; 2s ago
-   Main PID: 9140 (.ape-1.10)
-      Tasks: 4 (limit: 2289)
-     Memory: 26.5M
-```
-Interpretacja: Systemd odnotował nieprawidłowe zatrzymanie procesu i samoczynnie uruchomił usługę pod nowym identyfikatorem PID: 9140.
-
-D. Test komunikacji REST API z maszyny gospodarza (curl)
+C. Test komunikacji REST API z maszyny gospodarza (curl)
 Wykonanie zapytania HTTP POST z poziomu terminala systemu gospodarza (Windows PowerShell) w celu weryfikacji generowania tokenów:
 
 ```bash
