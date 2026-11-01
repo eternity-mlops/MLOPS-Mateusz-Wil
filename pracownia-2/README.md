@@ -105,3 +105,20 @@ Analiza parametrów uruchomieniowych:
 * --host 192.168.56.101 --port 8080: Sztywne bindowanie gniazda sieciowego wyłącznie do interfejsu Host-Only.
 * Restart=on-failure: Automatyczne przywracanie procesu w przypadku awarii lub nieoczekiwanego zakończenia (np. sygnał SIGKILL).
 * RestartSec=5s: Odczekanie 5 sekund przed ponowną próbą podniesienia procesu.
+
+## 5. Przeładowanie konfiguracji, autostart i uruchomienie
+Wczytanie nowego pliku jednostki do demona systemd:
+
+```bash
+sudo systemctl daemon-reload
+```
+Włączenie autostartu przy rozruchu maszyny oraz natychmiastowe uruchomienie:
+
+```bash
+sudo systemctl enable --now llamafile.service
+```
+Weryfikacja działania w czasie rzeczywistym (opcjonalny podgląd dziennika zdarzeń):
+
+```bash
+journalctl -u llamafile.service -f
+```
