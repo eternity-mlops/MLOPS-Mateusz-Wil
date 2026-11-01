@@ -65,3 +65,43 @@ chmod +x: Nadaje atrybut wykonywalności, umożliwiając uruchomienie pliku jako
 
 * chmod +x: Nadaje atrybut wykonywalności, umożliwiając uruchomienie pliku jako programu binarnego.
 * chown -R: Rekursywnie przypisuje katalog i zawarty w nim model do nowego użytkownika i grupy llamafile
+
+## 4. Konfiguracja jednostki systemd (/etc/systemd/system/llamafile.service)
+Utworzono plik definicji usługi za pomocą edytora tekstu:
+
+```bash
+sudo nano /etc/systemd/system/llamafile.service
+```
+Zawartość pliku jednostki:
+
+```bash
+[Unit]
+Description=Llamafile Local LLM Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=llamafile
+Group=llamafile
+WorkingDirectory=/opt/llamafile
+Environment="HOME=/opt/llamafile"
+Environment="TMPDIR=/opt/llamafile"
+ExecStart=/bin/sh /opt/llamafile/model.llamafile --server --nobrowser -t 1 -c 512 --host 192.168.56.101 --port 8080
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Analiza parametrów uruchomieniowych:
+* After=network-online.target / Wants=...: Usługa wystartuje dopiero po pełnym podniesieniu stosu sieciowego.
+* User=llamafile / Group=llamafile: Izolacja uprawnień procesu w systemie.
+* WorkingDirectory, HOME, TMPDIR: Wskazanie lokalizacji roboczej, gdzie silnik może tworzyć tymczasowe bufory cache.
+* --server --nobrowser: Tryb serwerowy bez próby wywoływania przeglądarki na maszynie bezgłowej.
+* -t 1: Ograniczenie egzekucji do dokładnie 1 wątku CPU (zapobiega nasyceniu rdzeni vCPU i zawieszaniu maszyny wirtualnej).
+* -c 512: Ograniczenie rozmiaru bufora kontekstu do 512 tokenów w celu drastycznej redukcji alokacji pamięci RAM.
+* --host 192.168.56.101 --port 8080: Sztywne bindowanie gniazda sieciowego wyłącznie do interfejsu Host-Only.
+* Restart=on-failure: Automatyczne przywracanie procesu w przypadku awarii lub nieoczekiwanego zakończenia (np. sygnał SIGKILL).
+* RestartSec=5s: Odczekanie 5 sekund przed ponowną próbą podniesienia procesu.
