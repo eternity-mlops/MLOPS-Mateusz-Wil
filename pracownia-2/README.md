@@ -47,8 +47,8 @@ Zgodnie z zasadami bezpieczeństwa usługa nie może działać na koncie root. W
 
 ```bash
 sudo useradd --system --no-create-home --shell /usr/sbin/nologin llamafile
-Wyjaśnienie parametrów:
 ```
+Wyjaśnienie parametrów:
 
 Wyjaśnienie parametrów:
 * --system: Tworzy konto systemowe z identyfikatorem UID < 1000, niewidoczne na ekranie powitalnym środowiska graficznego.
@@ -60,9 +60,8 @@ Wyjaśnienie parametrów:
 ```bash
 sudo chmod +x /opt/llamafile/model.llamafile
 sudo chown -R llamafile:llamafile /opt/llamafile
-chmod +x: Nadaje atrybut wykonywalności, umożliwiając uruchomienie pliku jako programu binarnego.
 ```
-
+* chmod +x: Nadaje atrybut wykonywalności, umożliwiając uruchomienie pliku jako programu binarnego.
 * chmod +x: Nadaje atrybut wykonywalności, umożliwiając uruchomienie pliku jako programu binarnego.
 * chown -R: Rekursywnie przypisuje katalog i zawarty w nim model do nowego użytkownika i grupy llamafile
 
@@ -133,7 +132,7 @@ sudo ss -tlnp | grep 8080
 Wynik:
 
 ```bash
-LISTEN 0 5 192.168.56.101:8080 0.0.0.0:* users:((".ape-1.10",pid=8719,fd=4))
+LISTEN 0      5      192.168.56.101:8080      0.0.0.0:*    users:((".ape-1.10",pid=1868,fd=4))
 ```
 Interpretacja: Usługa nasłuchuje pod adresem 192.168.56.101:8080. Adresy 127.0.0.1 (loopback), 10.0.2.15 (NAT) oraz interfejs wewnętrzny nie publikują tego portu, co potwierdza spełnienie wymogu izolacji.
 
@@ -146,15 +145,16 @@ systemctl status llamafile.service
 Wynik:
 
 ```Plaintext
-   llamafile.service - Llamafile Local LLM Service
+● llamafile.service - Llamafile LLM Service
      Loaded: loaded (/etc/systemd/system/llamafile.service; enabled; preset: enabled)
-     Active: active (running) since Sun 2026-11-01 19:30:15 CET; 5min ago
-   Main PID: 8719 (.ape-1.10)
-      Tasks: 4 (limit: 2289)
-     Memory: 26.8M (peak: 27.1M)
-        CPU: 1.412s
+     Active: active (running) since Sun 2026-11-01 18:40:11 UTC; 47min ago
+ Invocation: 9d40f7f2d82442f5a42713e2fbf20d40
+   Main PID: 1868 (.ape-1.10)
+      Tasks: 10 (limit: 6429)
+     Memory: 1.3G (peak: 1.3G)
+        CPU: 16.122s
      CGroup: /system.slice/llamafile.service
-             └─8719 /opt/llamafile/model.llamafile --server --nobrowser -t 1 -c 512 --host 192.168.56.101 --port 8080
+             └─1868 /opt/llamafile/.ape-1.10 /opt/llamafile/model.llamafile --server --nobrowser --no-mmap -t 1 -c 512 --host>
 ```
 Interpretacja: Proces działa stabilnie w grupie kontrolnej systemd, zużywając niespełna 27 MB pamięci operacyjnej w spoczynku.
 
