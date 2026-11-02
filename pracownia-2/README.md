@@ -131,11 +131,6 @@ Sprawdzenie stanu otwartych portów TCP:
 Interpretacja: Usługa nasłuchuje pod adresem 192.168.56.101:8080. Adresy 127.0.0.1 (loopback), 10.0.2.15 (NAT) oraz interfejs wewnętrzny nie publikują tego portu, co potwierdza spełnienie wymogu izolacji.
 
 **B. Test odporności na awarie (automatyczny restart po kill -9)**
-Sprawdzenie stanu procesu i zasobów:
-
-<img width="1152" height="234" alt="image" src="https://github.com/user-attachments/assets/832dac10-2794-4936-b12a-2abcbb7560f6" />
-
-
 Test mechanizmu self-healing realizowanego przez systemd:
 
 Wysłanie sygnału natychmiastowego zabicia procesu (SIGKILL) do aktywnego PID:
