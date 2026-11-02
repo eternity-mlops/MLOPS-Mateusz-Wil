@@ -106,6 +106,8 @@ Weryfikacja działającego kontenera oraz logów startowych serwera:
 docker ps
 docker logs llama-container | tail -n 15
 ```
+<img width="1150" height="98" alt="image" src="https://github.com/user-attachments/assets/5b8edef3-c82a-494d-abb9-7067e702813a" />
+
 
 ## 5. Weryfikacja komunikacji z kontenerem przez REST API
 
